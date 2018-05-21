@@ -2,6 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpp
 
+def compute_number_of_rows(R, well_sep, section_offset):
+    """
+    Compute number of rows that will fit in a section that is 1/6th of a
+    circle with radius R, for a given well separation.
+    """
+    h_section = R - (2 * section_offset + well_sep)
+    row_height = well_sep * np.sqrt(3)
+    return int(np.floor(h_section / row_height)), row_height
+
 def place_wells_in_section(R, well_sep, section_offset=0.1):
     """
     Compute the locations of wells withing a section given the total radius
@@ -9,10 +18,11 @@ def place_wells_in_section(R, well_sep, section_offset=0.1):
     section boundary, expressed as a fraction of the total phantom radius.
     """
     section_offset *= R
-    r = well_sep / 2.0
-    h_section = R - (2 * section_offset + 2 * r)
-    row_height = well_sep * np.sqrt(3)
-    num_rows = int(np.floor(h_section / row_height))
+    num_rows, row_height = compute_number_of_rows(R, well_sep, section_offset)
+#    # If only one well will fit in a section, try reducing the section offset
+#    # to see if more wells can be squeezed in
+#    if num_rows == 1:
+#        h_section = R - (2 * section_offset
     # Compute well locations given the well separation and number of rows
     num_wells = np.sum(1 + np.arange(num_rows))
     xs, ys = [], []
