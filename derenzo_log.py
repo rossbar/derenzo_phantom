@@ -2,6 +2,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpp
 
+def place_wells_in_section(R, well_sep, section_offset=0.1):
+    """
+    Compute the locations of wells withing a section given the total radius
+    of the phantom, the distance between the wells, and the offset from the
+    section boundary, expressed as a fraction of the total phantom radius.
+    """
+    section_offset *= R
+    r = well_sep / 2.0
+    h_section = R - (2 * section_offset + 2 * r)
+    row_height = well_sep * np.sqrt(3)
+    num_rows = int(np.floor(h_section / row_height))
+    # Compute well locations given the well separation and number of rows
+    num_wells = np.sum(1 + np.arange(num_rows))
+    xs, ys = [], []
+    for i in range(num_rows):
+        rn = i + 1
+        for x in np.arange(-rn, rn, 2) + 1:
+            xs.append(x * well_sep)
+            ys.append(-(section_offset + row_height * rn))
+    return np.vstack((xs, ys)).T
+
 # Create figure with aspect ration = 1.0
 fig = plt.figure(figsize=(6, 6))
 ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
@@ -24,28 +45,22 @@ plt.plot(*hpts.T, color='k')
 hpts = np.dot(hpts, rot)
 plt.plot(*hpts.T, color='k')
 
-# For a given feature size/separation, compute the number of rows & total 
-# number of wells in the section
-section_offset = 0.10 * R   # Well region offset from the true section bdries
-well_sep = 1.0
-r = well_sep / 2.0          # Feature size related to separation, for now
-h_section = R - (2 * section_offset + 2 * r)
-row_height = well_sep * np.sqrt(3)
-num_rows = int(np.floor(h_section / row_height))
-
-# Compute well locations given the well separation and number of rows
-num_wells = np.sum(1 + np.arange(num_rows))
-xs, ys = [], []
-for i in range(num_rows):
-    rn = i + 1
-    for x in np.arange(-rn, rn, 2) + 1:
-        xs.append(x * well_sep)
-        ys.append(-(section_offset + row_height * rn))
-locs = np.vstack((xs, ys)).T
-
-# Plot wells
-for xy in locs:
-    cyl = mpp.Circle(xy, radius=r, color="green", alpha=0.5)
-    ax.add_patch(cyl)
+# Generate a phantom with six sections
+rot_angle = -(2*np.pi) / 6.                      # 6 60-degree sections
+feature_sizes = (10.0, 8.0, 6.0, 4.0, 2.0, 1.0) # Must have 6 entries
+for i, fs in enumerate(feature_sizes):
+    # Well radius
+    r = fs / 2.0
+    # Determine cell locations in un-rotated frame
+    locs = place_wells_in_section(R, fs)
+    # Rotate into the proper cell
+    th = i * rot_angle
+    rot_mat = np.array([(np.cos(th), -1*np.sin(th)),
+                        (np.sin(th), np.cos(th))])
+    locs = np.array([np.dot(l, rot_mat) for l in locs])
+    # Plot wells
+    for xy in locs:
+        cyl = mpp.Circle(xy, radius=r, color="green", alpha=0.5)
+        ax.add_patch(cyl)
 
 plt.show()
