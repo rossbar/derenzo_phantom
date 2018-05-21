@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpp
@@ -19,10 +20,13 @@ def place_wells_in_section(R, well_sep, section_offset=0.1):
     """
     section_offset *= R
     num_rows, row_height = compute_number_of_rows(R, well_sep, section_offset)
-#    # If only one well will fit in a section, try reducing the section offset
-#    # to see if more wells can be squeezed in
-#    if num_rows == 1:
-#        h_section = R - (2 * section_offset
+    # If only one well will fit in a section, try reducing the section offset
+    # to see if more wells can be squeezed in
+    if num_rows == 1:
+        num_rows, row_height = compute_number_of_rows(R, well_sep, 0)
+        if num_rows == 1:
+            warnings.warn(("Cannot fit multiple features in section with "
+                           "feature size = %s" %(well_sep)))
     # Compute well locations given the well separation and number of rows
     num_wells = np.sum(1 + np.arange(num_rows))
     xs, ys = [], []
