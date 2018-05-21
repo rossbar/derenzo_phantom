@@ -24,18 +24,23 @@ plt.plot(*hpts.T, color='k')
 hpts = np.dot(hpts, rot)
 plt.plot(*hpts.T, color='k')
 
+# For a given feature size/separation, compute the number of rows & total 
+# number of wells in the section
+section_offset = 0.10 * R   # Well region offset from the true section bdries
+well_sep = 1.0
+r = well_sep / 2.0          # Feature size related to separation, for now
+h_section = R - (2 * section_offset + 2 * r)
+row_height = well_sep * np.sqrt(3)
+num_rows = int(np.floor(h_section / row_height))
+
 # Compute well locations given the well separation and number of rows
-num_rows = 3
 num_wells = np.sum(1 + np.arange(num_rows))
-well_sep = 6.0
-r = well_sep / 2.0
-h = R / float(num_rows + 1)
 xs, ys = [], []
 for i in range(num_rows):
     rn = i + 1
     for x in np.arange(-rn, rn, 2) + 1:
         xs.append(x * well_sep)
-        ys.append(-h * rn)
+        ys.append(-(section_offset + row_height * rn))
 locs = np.vstack((xs, ys)).T
 
 # Plot wells
