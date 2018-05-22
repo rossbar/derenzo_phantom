@@ -104,6 +104,10 @@ class DerenzoSection(object):
     def num_wells(self):
         return np.sum(1 + np.arange(num_rows))
 
+    @property
+    def well_area(self):
+        return num_wells * np.pi * self.r**2
+
     def place_wells_in_section(self):
         """
         Method analogous to derenzo_log.place_wells_in_section
