@@ -49,6 +49,14 @@ class DerenzoPhantom(object):
         self.depth = cyl_height
         self.unit = unit
 
+        # Define sections
+        self.sections = []
+        for well_sep, rot_angle in zip(self.well_seps, 
+                                       np.arange(0, 360., 360. / self._num_sections)):
+            section = DerenzoSection(self.radius, well_sep)
+            section.apply_rotation(rot_angle)
+            self.sections.append(section)
+
         # Initialize graphic (values hard-coded for now)
         self.fig = plt.figure(figsize=(6, 6))           # Aspect ratio = 1
         self.ax = self.fig.add_axes([0.1, 0.1, 0.8, 0.8])
@@ -58,13 +66,9 @@ class DerenzoPhantom(object):
         self.ax.set_xlim((-1.2*self.radius, 1.2*self.radius))
         self.ax.set_ylim((-1.2*self.radius, 1.2*self.radius))
 
-        # Define sections
-        self.sections = []
-        for well_sep, rot_angle in zip(self.well_seps, 
-                                       np.arange(0, 360., 360. / self._num_sections)):
-            section = DerenzoSection(self.radius, well_sep)
-            section.apply_rotation(rot_angle)
-            self.sections.append(section)
+        # Plot well locations from all sections
+        for section in self.sections:
+            section.plot_wells(self.fig, self.ax)
 
     def show(self):
         """
@@ -140,7 +144,15 @@ class DerenzoSection(object):
         rot_mat = np.array([(np.cos(th), -np.sin(th)),
                             (np.sin(th),  np.cos(th))])
         self.locs = np.array([np.dot(l, rot_mat) for l in self.locs])
-        
+
+    def plot_wells(self, fig, ax):
+        """
+        Plot the well pattern for the given section on the input figure and
+        axis handles.
+        """
+        for xy in self.locs:
+            cyl = mpp.Circle(xy, radius=self.r, color="green", alpha=0.5)
+            ax.add_patch(cyl)
 
 if __name__ == "__main__":
     radius = 50.0
