@@ -60,52 +60,53 @@ def export_to_G4mac(filehandle, x, y, z, r, energy, num_evs, halfz=None):
     srcstr += '/run/beamOn %i\n\n' %(num_evs)
     filehandle.write(srcstr)
 
+if __name__ == "__main__":
 
-# Create figure with aspect ration = 1.0
-fig = plt.figure(figsize=(6, 6))
-ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-
-# Phantom params
-R = 50.0
-cyl_height = 10.0
-gamma_en = 661.657
-num_evs = 100
-
-# Add phantom outline to plot
-derenzo_cyl = mpp.Circle((0, 0), radius=R, color="gray", alpha=0.3)
-ax.add_patch(derenzo_cyl)
-ax.set_xlim((-1.2*R, 1.2*R))
-ax.set_ylim((-1.2*R, 1.2*R))
-
-# Partition phantom into 6 sections
-hpts = np.array([(-R, 0), (R, 0)])
-plt.plot(*hpts.T, color='k')
-th = -60. * (np.pi/180)
-rot = np.array([(np.cos(th), -1*np.sin(th)),
-                (np.sin(th), np.cos(th))])
-hpts = np.dot(hpts, rot)
-plt.plot(*hpts.T, color='k')
-hpts = np.dot(hpts, rot)
-plt.plot(*hpts.T, color='k')
-
-# Generate a phantom with six sections and write out to G4 macro file
-rot_angle = -(2*np.pi) / 6.                      # 6 60-degree sections
-feature_sizes = (10.0, 8.0, 6.0, 4.0, 2.0, 1.0) # Must have 6 entries
-with open('derenzo.mac', 'w') as fh:
-    for i, fs in enumerate(feature_sizes):
-        # Well radius
-        r = fs / 2.0
-        # Determine cell locations in un-rotated frame
-        locs = place_wells_in_section(R, fs)
-        # Rotate into the proper cell
-        th = i * rot_angle
-        rot_mat = np.array([(np.cos(th), -1*np.sin(th)),
-                            (np.sin(th), np.cos(th))])
-        locs = np.array([np.dot(l, rot_mat) for l in locs])
-        # Plot wells and write to macro file
-        for xy in locs:
-            cyl = mpp.Circle(xy, radius=r, color="green", alpha=0.5)
-            ax.add_patch(cyl)
-            export_to_G4mac(fh, xy[0], xy[1], 0, r, gamma_en, num_evs, halfz=None)
-
-plt.show()
+    # Create figure with aspect ration = 1.0
+    fig = plt.figure(figsize=(6, 6))
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+    
+    # Phantom params
+    R = 50.0
+    cyl_height = 10.0
+    gamma_en = 661.657
+    num_evs = 100
+    
+    # Add phantom outline to plot
+    derenzo_cyl = mpp.Circle((0, 0), radius=R, color="gray", alpha=0.3)
+    ax.add_patch(derenzo_cyl)
+    ax.set_xlim((-1.2*R, 1.2*R))
+    ax.set_ylim((-1.2*R, 1.2*R))
+    
+    # Partition phantom into 6 sections
+    hpts = np.array([(-R, 0), (R, 0)])
+    plt.plot(*hpts.T, color='k')
+    th = -60. * (np.pi/180)
+    rot = np.array([(np.cos(th), -1*np.sin(th)),
+                    (np.sin(th), np.cos(th))])
+    hpts = np.dot(hpts, rot)
+    plt.plot(*hpts.T, color='k')
+    hpts = np.dot(hpts, rot)
+    plt.plot(*hpts.T, color='k')
+    
+    # Generate a phantom with six sections and write out to G4 macro file
+    rot_angle = -(2*np.pi) / 6.                      # 6 60-degree sections
+    feature_sizes = (10.0, 8.0, 6.0, 4.0, 2.0, 1.0) # Must have 6 entries
+    with open('derenzo.mac', 'w') as fh:
+        for i, fs in enumerate(feature_sizes):
+            # Well radius
+            r = fs / 2.0
+            # Determine cell locations in un-rotated frame
+            locs = place_wells_in_section(R, fs)
+            # Rotate into the proper cell
+            th = i * rot_angle
+            rot_mat = np.array([(np.cos(th), -1*np.sin(th)),
+                                (np.sin(th), np.cos(th))])
+            locs = np.array([np.dot(l, rot_mat) for l in locs])
+            # Plot wells and write to macro file
+            for xy in locs:
+                cyl = mpp.Circle(xy, radius=r, color="green", alpha=0.5)
+                ax.add_patch(cyl)
+                export_to_G4mac(fh, xy[0], xy[1], 0, r, gamma_en, num_evs, halfz=None)
+    
+    plt.show()
