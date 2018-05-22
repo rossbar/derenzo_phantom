@@ -43,5 +43,29 @@ class DerenzoPhantom(object):
         >>> well_seps = (10.0, 8.0, 6.0, 4.0, 2.0, 1.0)
         >>> my_phantom = DerenzoPhantom(radius, well_seps)
         """
+        self.radius = radius
+        self.well_seps = well_separations
+        self.depth = cyl_height
+        self.unit = unit
 
-    
+        # Initialize graphic (values hard-coded for now)
+        self.fig = plt.figure(figsize=(6, 6))           # Aspect ratio = 1
+        self.ax = self.fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        self.cyl_patch = mpp.Circle((0, 0), radius=self.radius, color='gray',
+                                    alpha=0.3)
+        self.ax.add_patch(self.cyl_patch)
+        self.ax.set_xlim((-1.2*self.radius, 1.2*self.radius))
+        self.ax.set_ylim((-1.2*self.radius, 1.2*self.radius))
+
+    def show(self):
+        """
+        Render and display the MPL model of the phantom.
+        """
+        self.fig.canvas.draw()
+        plt.show()
+
+if __name__ == "__main__":
+    radius = 50.0
+    well_seps = (10.0, 8.0, 6.0, 4.0, 2.0, 1.0)
+    my_phantom = DerenzoPhantom(radius, well_seps)
+    my_phantom.show()
