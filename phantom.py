@@ -60,8 +60,8 @@ class DerenzoPhantom(object):
 
         # Define sections
         self.sections = []
-        for i, (well_sep, rot_angle) in zip(self.well_seps, 
-                                            np.arange(0, 360., 360. / self._num_sections)):
+        for well_sep, rot_angle in zip(self.well_seps, 
+                                       np.arange(0, 360., 360. / self._num_sections)):
             section = DerenzoSection(self.radius, well_sep)
             section.apply_rotation(rot_angle)
             self.sections.append(section)
@@ -102,7 +102,7 @@ class DerenzoSection(object):
 
     @property
     def num_wells(self):
-        return np.sum(1 + np.arange(num_rows))
+        return np.sum(1 + np.arange(self.num_rows))
 
     @property
     def well_area(self):
@@ -118,15 +118,15 @@ class DerenzoSection(object):
         # that which governs this behavior
         if self.num_rows <= 1:
             self.section_offset = 0.0
-            if num_rows <= 1:
+            if self.num_rows <= 1:
                 warnings.warn(("Cannot fit multiple features in section with "
                                "feature size = %s" %(self.well_sep)))
         xs, ys = [], []
         for i in range(self.num_rows):
             rn = i + 1
-            for x in range(-rn, rn, 2) + 1:
+            for x in np.arange(-rn, rn, 2) + 1:
                 xs.append(x * self.well_sep)
-                yx.append(-(self.section_offset + self.row_height * rn))
+                ys.append(-(self.section_offset + self.row_height * rn))
         self.locs = np.vstack((xs, ys)).T
 
     def apply_rotation(self, deg):
