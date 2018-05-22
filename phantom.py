@@ -58,6 +58,14 @@ class DerenzoPhantom(object):
         self.ax.set_xlim((-1.2*self.radius, 1.2*self.radius))
         self.ax.set_ylim((-1.2*self.radius, 1.2*self.radius))
 
+        # Define sections
+        self.sections = []
+        for i, (well_sep, rot_angle) in zip(self.well_seps, 
+                                            np.arange(0, 360., 360. / self._num_sections)):
+            section = DerenzoSection(self.radius, well_sep)
+            section.apply_rotation(rot_angle)
+            self.sections.append(section)
+
     def show(self):
         """
         Render and display the MPL model of the phantom.
