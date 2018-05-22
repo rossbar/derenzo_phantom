@@ -47,7 +47,7 @@ def export_to_G4mac(filehandle, x, y, z, r, halfz, energy, num_evs):
     srcstr += '/gps/pos/shape Cylinder\n'
     srcstr += '/gps/pos/centre %f %f %f mm\n' %(x, y, z)
     srcstr += '/gps/pos/radius %f mm\n' %(r)
-    srcstr += '/gps/halfz %f mm\n' %(halfz)
+    srcstr += '/gps/pos/halfz %f mm\n' %(halfz)
     srcstr += '/gps/ang/type iso\n'
     srcstr += '/gps/ene/type Mono\n'
     srcstr += '/gps/ene/mono %f\n' %(energy)
