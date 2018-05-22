@@ -37,17 +37,23 @@ def place_wells_in_section(R, well_sep, section_offset=0.1):
             ys.append(-(section_offset + row_height * rn))
     return np.vstack((xs, ys)).T
 
-def export_to_G4mac(filehandle, x, y, z, r, halfz, energy, num_evs):
+def export_to_G4mac(filehandle, x, y, z, r, energy, num_evs, halfz=None):
     """
     Write Derenzo wells to a Geant4 macro file for use with 
     G4GeneralParticleSource.
     """
     srcstr =  '/gps/particle gamma\n'
-    srcstr += '/gps/pos/type Volume\n'
-    srcstr += '/gps/pos/shape Cylinder\n'
+    # 2D vs 3D
+    if halfz is None:
+        srcstr += '/gps/pos/type Plane\n'
+        srcstr += '/gps/pos/shape Circle\n'
+    else:
+        srcstr += '/gps/pos/type Volume\n'
+        srcstr += '/gps/pos/shape Cylinder\n'
     srcstr += '/gps/pos/centre %f %f %f mm\n' %(x, y, z)
     srcstr += '/gps/pos/radius %f mm\n' %(r)
-    srcstr += '/gps/pos/halfz %f mm\n' %(halfz)
+    if halfz is not None:
+        srcstr += '/gps/pos/halfz %f mm\n' %(halfz)
     srcstr += '/gps/ang/type iso\n'
     srcstr += '/gps/ene/type Mono\n'
     srcstr += '/gps/ene/mono %f\n' %(energy)
@@ -100,7 +106,6 @@ with open('derenzo.mac', 'w') as fh:
         for xy in locs:
             cyl = mpp.Circle(xy, radius=r, color="green", alpha=0.5)
             ax.add_patch(cyl)
-            export_to_G4mac(fh, xy[0], xy[1], 0, r, cyl_height/2.0, gamma_en, 
-                            num_evs)
+            export_to_G4mac(fh, xy[0], xy[1], 0, r, gamma_en, num_evs, halfz=None)
 
 plt.show()
