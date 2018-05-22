@@ -69,16 +69,19 @@ class DerenzoSection(object):
     """
     One of six sub-sections of the Derenzo phantom.
     """
-    def __init__(self, phantom_radius, well_separation, rotation_deg,
-                 section_offset=0.1):
+    def __init__(self, phantom_radius, well_separation, section_offset=0.1):
+        """
+        phantom_radius = radius of containing phantom
+        well_separation = distance between wells (and well diameter!)
+        section_offset = fraction of phantom radius that is used as a buffer
+                         zone between adjacent sections.
+        """
         self.R = phantom_radius
         self.well_sep = well_separation
         self.r = self.well_sep / 2.0
-        self.th = rotation_deg
-        self.thr = self.th * (np.pi/180)
-        self.rot_mat = np.array([(np.cos(self.thr), -1*np.sin(self.thr)),
-                                 (np.sin(self.thr), np.cos(self.thr))])
         self.section_offset = self.R * section_offset
+        # Determine well locations
+        self.place_wells_in_section()
 
     @property
     def row_height(self):
@@ -88,6 +91,10 @@ class DerenzoSection(object):
     def num_rows(self):
         h_section = self.R - (2 * self.section_offset + self.well_sep)
         return int(np.floor(h_section / self.row_height))
+
+    @property
+    def num_wells(self):
+        return np.sum(1 + np.arange(num_rows))
 
     def place_wells_in_section(self):
         """
@@ -102,7 +109,25 @@ class DerenzoSection(object):
             if num_rows <= 1:
                 warnings.warn(("Cannot fit multiple features in section with "
                                "feature size = %s" %(self.well_sep)))
+        xs, ys = [], []
+        for i in range(self.num_rows):
+            rn = i + 1
+            for x in range(-rn, rn, 2) + 1:
+                xs.append(x * self.well_sep)
+                yx.append(-(self.section_offset + self.row_height * rn))
+        self.locs = np.vstack((xs, ys)).T
 
+    def apply_rotation(self, deg):
+        """
+        Rotate well locations around central (z) axis by 'deg' degrees.
+
+        deg > 0: Counter-clockwise | deg < 0: clockwise
+        """
+        self.rot_angle = deg
+        th = -1 * deg * (np.pi / 180)
+        rot_mat = np.array([(np.cos(th), -np.sin(th)),
+                            (np.sin(th),  np.cos(th))])
+        self.locs = np.array([np.dot(l, rot_mat) for l in self.locs])
         
 
 if __name__ == "__main__":
