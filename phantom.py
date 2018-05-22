@@ -1,3 +1,4 @@
+import warnings
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpp
@@ -63,6 +64,46 @@ class DerenzoPhantom(object):
         """
         self.fig.canvas.draw()
         plt.show()
+
+class DerenzoSection(object):
+    """
+    One of six sub-sections of the Derenzo phantom.
+    """
+    def __init__(self, phantom_radius, well_separation, rotation_deg,
+                 section_offset=0.1):
+        self.R = phantom_radius
+        self.well_sep = well_separation
+        self.r = self.well_sep / 2.0
+        self.th = rotation_deg
+        self.thr = self.th * (np.pi/180)
+        self.rot_mat = np.array([(np.cos(self.thr), -1*np.sin(self.thr)),
+                                 (np.sin(self.thr), np.cos(self.thr))])
+        self.section_offset = self.R * section_offset
+
+    @property
+    def row_height(self):
+        return self.well_sep * np.sqrt(3)
+
+    @property
+    def num_rows(self):
+        h_section = self.R - (2 * self.section_offset + self.well_sep)
+        return int(np.floor(h_section / self.row_height))
+
+    def place_wells_in_section(self):
+        """
+        Method analogous to derenzo_log.place_wells_in_section
+        """
+        # If only one (or no) wells fit in section, try reducing section offset
+        # in attempt to squeeze more in.
+        #NOTE: Could add property called 'placement_policy' or something like
+        # that which governs this behavior
+        if self.num_rows <= 1:
+            self.section_offset = 0.0
+            if num_rows <= 1:
+                warnings.warn(("Cannot fit multiple features in section with "
+                               "feature size = %s" %(self.well_sep)))
+
+        
 
 if __name__ == "__main__":
     radius = 50.0
