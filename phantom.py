@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpp
 
+from derenzo_log import export_to_G4mac
+
 class DerenzoPhantom(object):
     """
     Describes a cylindrical Derenzo phantom.
@@ -66,9 +68,13 @@ class DerenzoPhantom(object):
         self.ax.set_xlim((-1.2*self.radius, 1.2*self.radius))
         self.ax.set_ylim((-1.2*self.radius, 1.2*self.radius))
 
-        # Plot well locations from all sections
+        # Plot well locations from all sections of the phantom
         for section in self.sections:
             section.plot_wells(self.fig, self.ax)
+
+    @property
+    def area(self):
+        return np.sum([s.total_area for s in self.sections])
 
     def show(self):
         """
@@ -76,6 +82,22 @@ class DerenzoPhantom(object):
         """
         self.fig.canvas.draw()
         plt.show()
+
+    def export_to_G4gps_macro(self, fname, num_events, gamma_en,
+                              use_poisson=False):
+        """
+        Generate a Geant4 general particle source macro for the phantom
+        instance.
+        """
+        with open(fname, 'w') as fh:
+            for section in self.sections:
+                # Determine the number of events to run for each cell in section
+                ne = num_events * (section.well_area / self.area)
+                # TODO: add & test Poisson sampling
+                # Add a GPS source for each well
+                for xy in section.locs:
+                    export_to_G4mac(fh, xy[0], xy[1], 0, section.r, gamma_en,
+                                    ne, halfz=self.depth)
 
 class DerenzoSection(object):
     """
@@ -110,7 +132,11 @@ class DerenzoSection(object):
 
     @property
     def well_area(self):
-        return num_wells * np.pi * self.r**2
+        return np.pi * self.r**2
+
+    @property
+    def total_area(self):
+        return self.num_wells * self.well_area
 
     def place_wells_in_section(self):
         """
@@ -159,3 +185,4 @@ if __name__ == "__main__":
     well_seps = (10.0, 8.0, 6.0, 4.0, 2.0, 1.0)
     my_phantom = DerenzoPhantom(radius, well_seps)
     my_phantom.show()
+    my_phantom.export_to_G4gps_macro('derenzo.mac', 1000000, 661.657)
