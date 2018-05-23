@@ -88,15 +88,29 @@ class DerenzoPhantom(object):
         plt.show()
 
     def export_to_G4gps_macro(self, fname, num_events, gamma_en,
-                              use_poisson=False):
+                              event_mode='equal_activity'):
         """
         Generate a Geant4 general particle source macro for the phantom
         instance.
+
+        Event mode determines how many events per well. Options are:
+         - 'equal_activity': Behaves as if the wells are filled with a solution
+                             of constant activity/volume, thus the events per
+                             well is the total number of events divided by
+                             the area ratio of the cell.
+         - 'equal_counts'  : Divides the total number of events by the number
+                             of wells. Usefull for accentuating smaller 
+                             features for testing reconstruction.
         """
         with open(fname, 'w') as fh:
             for section in self.sections:
                 # Determine the number of events to run for each cell in section
-                ne = num_events * (section.well_area / self.area)
+                if event_mode == 'equal_activity':
+                    ne = num_events * (section.well_area / self.area)
+                elif event_mode == 'equal_counts':
+                    ne = num_events * (1.0 / self.num_wells)
+                else:
+                    raise ValueError("'event_mode' not understood.")
                 # TODO: add & test Poisson sampling
                 # Add a GPS source for each well
                 for xy in section.locs:
