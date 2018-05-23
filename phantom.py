@@ -76,6 +76,10 @@ class DerenzoPhantom(object):
     def area(self):
         return np.sum([s.total_area for s in self.sections])
 
+    @property
+    def num_wells(self):
+        return np.sum([s.num_wells for s in self.sections])
+
     def show(self):
         """
         Render and display the MPL model of the phantom.
@@ -181,8 +185,8 @@ class DerenzoSection(object):
             ax.add_patch(cyl)
 
 if __name__ == "__main__":
-    radius = 50.0
-    well_seps = (10.0, 8.0, 6.0, 4.0, 2.0, 1.0)
+    radius = 10.0
+    well_seps = (2.0, 1.8, 1.6, 1.4, 1.2, 1.0)
     my_phantom = DerenzoPhantom(radius, well_seps)
     my_phantom.show()
-    my_phantom.export_to_G4gps_macro('derenzo.mac', 1000000, 661.657)
+    my_phantom.export_to_G4gps_macro('derenzo.mac', 5e6, 661.657)
