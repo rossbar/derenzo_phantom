@@ -134,6 +134,8 @@ class DerenzoSection(object):
         self.section_offset = self.R * section_offset
         # Determine well locations
         self.place_wells_in_section()
+        # Location for section label
+        self.label_xy = np.array((0, -1.1 * self.R))
 
     @property
     def row_height(self):
@@ -155,6 +157,10 @@ class DerenzoSection(object):
     @property
     def total_area(self):
         return self.num_wells * self.well_area
+
+    @property
+    def label(self):
+        return "%.1f mm" %(self.well_sep)
 
     def place_wells_in_section(self):
         """
@@ -187,20 +193,28 @@ class DerenzoSection(object):
         th = -1 * deg * (np.pi / 180)
         rot_mat = np.array([(np.cos(th), -np.sin(th)),
                             (np.sin(th),  np.cos(th))])
+        # Rotate well locations
         self.locs = np.array([np.dot(l, rot_mat) for l in self.locs])
+        # Rotate label location
+        self.label_xy = np.dot(self.label_xy, rot_mat)
 
     def plot_wells(self, fig, ax):
         """
         Plot the well pattern for the given section on the input figure and
         axis handles.
         """
+        # Plot wells
         for xy in self.locs:
             cyl = mpp.Circle(xy, radius=self.r, color="green", alpha=0.5)
             ax.add_patch(cyl)
+        # Add label
+        x, y = self.label_xy
+        ax.text(x, y, self.label, horizontalalignment='center',
+                verticalalignment='center', fontsize=16)
 
 if __name__ == "__main__":
-    radius = 10.0
-    well_seps = (2.0, 1.8, 1.6, 1.4, 1.2, 1.0)
+    radius = 37.0
+    well_seps = (8.0, 6.0, 5.0, 4.0, 3.0, 2.0)
     my_phantom = DerenzoPhantom(radius, well_seps)
     my_phantom.show()
-    my_phantom.export_to_G4gps_macro('derenzo.mac', 5e6, 661.657)
+    my_phantom.export_to_G4gps_macro('derenzo.mac', 8e6, 661.657)
