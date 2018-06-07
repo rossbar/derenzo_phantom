@@ -108,7 +108,9 @@ class DerenzoPhantom(object):
                 if event_mode == 'equal_activity':
                     ne = num_events * (section.well_area / self.area)
                 elif event_mode == 'equal_counts':
-                    ne = num_events * (1.0 / self.num_wells)
+                    ne = num_events / self.num_wells
+                elif event_mode == 'subsection_area':
+                    ne = num_events * (section.total_area / self.area)
                 else:
                     raise ValueError("'event_mode' not understood.")
                 # TODO: add & test Poisson sampling
@@ -217,4 +219,5 @@ if __name__ == "__main__":
     well_seps = (8.0, 6.0, 5.0, 4.0, 3.0, 2.0)
     my_phantom = DerenzoPhantom(radius, well_seps)
     my_phantom.show()
-    my_phantom.export_to_G4gps_macro('derenzo.mac', 8e6, 661.657)
+    my_phantom.export_to_G4gps_macro('derenzo.mac', 1e6, 661.657,
+                                     event_mode='equal_activity')
