@@ -74,11 +74,11 @@ class DerenzoPhantom(object):
 
     @property
     def area(self):
-        return np.sum([s.total_area for s in self.sections])
+        return np.sum(np.array([s.total_area for s in self.sections]))
 
     @property
     def num_wells(self):
-        return np.sum([s.num_wells for s in self.sections])
+        return np.sum(np.array([s.num_wells for s in self.sections]))
 
     def show(self):
         """
