@@ -11,7 +11,7 @@ class DerenzoPhantom(object):
     """
     # Always subdivided into six sections, 60 degrees per section
     _num_sections = 6
-    def __init__(self, radius, well_separations, cyl_height=0, unit="mm"):
+    def __init__(self, radius, well_separations, cyl_height=0, unit="mm", section_offset=0.1):
         """
         Create a Derenzo phantom based on the input parameters.
 
@@ -50,12 +50,13 @@ class DerenzoPhantom(object):
         self.well_seps = well_separations
         self.depth = cyl_height
         self.unit = unit
+        self.section_offset = section_offset
 
         # Define sections
         self.sections = []
         for well_sep, rot_angle in zip(self.well_seps, 
                                        np.arange(0, 360., 360. / self._num_sections)):
-            section = DerenzoSection(self.radius, well_sep)
+            section = DerenzoSection(self.radius, well_sep, self.section_offset)
             section.apply_rotation(rot_angle)
             self.sections.append(section)
 
