@@ -59,19 +59,6 @@ class DerenzoPhantom(object):
             section.apply_rotation(rot_angle)
             self.sections.append(section)
 
-        # Initialize graphic (values hard-coded for now)
-        self.fig = plt.figure(figsize=(6, 6))           # Aspect ratio = 1
-        self.ax = self.fig.add_axes([0.1, 0.1, 0.8, 0.8])
-        self.cyl_patch = mpp.Circle((0, 0), radius=self.radius, color='gray',
-                                    alpha=0.3)
-        self.ax.add_patch(self.cyl_patch)
-        self.ax.set_xlim((-1.2*self.radius, 1.2*self.radius))
-        self.ax.set_ylim((-1.2*self.radius, 1.2*self.radius))
-
-        # Plot well locations from all sections of the phantom
-        for section in self.sections:
-            section.plot_wells(self.fig, self.ax)
-
     @property
     def area(self):
         return np.sum([s.total_area for s in self.sections])
@@ -84,6 +71,20 @@ class DerenzoPhantom(object):
         """
         Render and display the MPL model of the phantom.
         """
+
+        # Initialize graphic (values hard-coded for now)
+        self.fig = plt.figure(figsize=(6, 6))           # Aspect ratio = 1
+        self.ax = self.fig.add_axes([0.1, 0.1, 0.8, 0.8])
+        self.cyl_patch = mpp.Circle((0, 0), radius=self.radius, color='gray',
+                                    alpha=0.3)
+        self.ax.add_patch(self.cyl_patch)
+        self.ax.set_xlim((-1.2*self.radius, 1.2*self.radius))
+        self.ax.set_ylim((-1.2*self.radius, 1.2*self.radius))
+
+        # Plot well locations from all sections of the phantom
+        for section in self.sections:
+            section.plot_wells(self.fig, self.ax)
+        
         self.fig.canvas.draw()
         plt.show()
 
