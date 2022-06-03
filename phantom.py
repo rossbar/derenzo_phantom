@@ -118,7 +118,67 @@ class DerenzoPhantom(object):
                 for xy in section.locs:
                     export_to_G4mac(fh, xy[0], xy[1], 0, section.r, gamma_en,
                                     ne, halfz=self.depth)
+                    
+    def to_image(self, img_side, num_events=1., event_mode="equal_counts", plot=False):
+        """
+        Generates an image source from the phantom as a numpy array.
+        Event mode determines how many events per well. Options equal_activity and equal_counts are as above.
+        """
+        if event_mode not in ["equal_activity", "equal_counts"]: raise ValueError("'event_mode' not understood.")
+        r = self.radius
+        px_mm = img_side/(2*r)
+        shp = (img_side, img_side)
+        activity = num_events/self.area
+        odd_ceil = lambda x: int( 2*(np.ceil(x)//2) + 1 )
 
+        # Generate background image
+        img = np.zeros(shp)
+        img_grid = np.mgrid[:shp[0], :shp[1]]
+
+        center = np.array(shp)/2.
+        outside = np.linalg.norm(img_grid \
+                                - center[:, np.newaxis, np.newaxis],
+                                ord=2, axis=0) > r*px_mm
+        img[outside] = np.nan
+
+        # Generate rods
+        for section in self.sections:
+
+            # Generate a template for the section
+            if event_mode == 'equal_activity': activity = num_events*section.well_area/self.area
+            r_px = section.r*px_mm
+            d_px = odd_ceil(2*r_px)
+            sl = np.arange(d_px) - d_px//2
+            mg = np.array( np.meshgrid(sl, sl) )
+
+            sl2 = sl**2
+            disk = activity*(sl2 + sl2[:, np.newaxis] <= r_px)
+
+            # Insert the template for each rod in the section
+            for loc in self.mm_to_px(section.locs, shp, r, round=True):
+                index_grid = tuple(mg + loc[:, np.newaxis, np.newaxis])
+                img[index_grid] += disk
+
+        if plot:
+            cmap = matplotlib.cm.get_cmap("spring").copy()
+            cmap.set_bad(color='white')
+            plt.imshow(img, extent=[-r, r, -r, r])
+
+        return img
+
+    @property
+    def mm_to_px(self, xy, shp, radius, round=False):
+        """
+        Internal function to change from mm coords to image pixels.
+        """
+        alt = np.array([1., -1.])
+        offset = alt*radius
+        scale = alt*np.array(shp)/(2*radius)
+        yx_new = (scale*(xy + offset))[:, ::-1]
+
+        return yx_new if not round else np.rint(yx_new).astype(int)
+    
+    
 class DerenzoSection(object):
     """
     One of six sub-sections of the Derenzo phantom.
